@@ -6,7 +6,7 @@
 <meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
 
 <head>
-    <title>Login V17</title>
+    <title>Financial Report</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -42,7 +42,7 @@
                         Download Report
                     </span>
                     <div class="wrap-input100 rs1-wrap-input100 validate-input m-b-20" data-validate="Type user name" style="width: 100%">
-                        <input id="code" class="input100" type="text" name="code" placeholder="Code">
+                        <input id="code" class="input100" type="text" name="code" placeholder="Enter Code Here">
                         <span class="focus-input100"></span>
                     </div>
                     {{-- <div class="wrap-input100 rs1-wrap-input100 validate-input m-b-20" data-validate="Type user name">
