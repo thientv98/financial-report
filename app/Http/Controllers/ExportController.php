@@ -54,6 +54,7 @@ class ExportController extends Controller
                 $c = $tab2->filter('#\36 0 > td:nth-child(4)')->text();
                 $d = $tab2->filter('#\36 0 > td:nth-child(5)')->text();
                 array_push($data[0], $a, $b, $c, $d);
+                
 
                 // 1 => ["Tổng cộng tài sản"],
                 $a = $tab1->filter('#\30 01 > td:nth-child(2)')->text();
@@ -61,6 +62,7 @@ class ExportController extends Controller
                 $c = $tab1->filter('#\30 01 > td:nth-child(4)')->text();
                 $d = $tab1->filter('#\30 01 > td:nth-child(5)')->text();
                 array_push($data[1], $a, $b, $c, $d);
+                
 
                 //2 => ["Lợi nhuận sau thuế/tổng tài sản"],
 
@@ -70,77 +72,107 @@ class ExportController extends Controller
                 $c = $tab1->filter('#\33 00 > td:nth-child(4)')->text();
                 $d = $tab1->filter('#\33 00 > td:nth-child(5)')->text();
                 array_push($data[3], $a, $b, $c, $d);
+                
 
                 //4 => ["Nợ dài hạn"],
-                $a = $tab1->filter('#\33 30 > td:nth-child(2)')->text();
-                $b = $tab1->filter('#\33 30 > td:nth-child(3)')->text();
-                $c = $tab1->filter('#\33 30 > td:nth-child(4)')->text();
-                $d = $tab1->filter('#\33 30 > td:nth-child(5)')->text();
-                array_push($data[4], $a, $b, $c, $d);
+                if($tab1->filter('#\33 30 > td:nth-child(2)')->count() > 0) {
+                    $a = $tab1->filter('#\33 30 > td:nth-child(2)')->text();
+                    $b = $tab1->filter('#\33 30 > td:nth-child(3)')->text();
+                    $c = $tab1->filter('#\33 30 > td:nth-child(4)')->text();
+                    $d = $tab1->filter('#\33 30 > td:nth-child(5)')->text();
+                    array_push($data[4], $a, $b, $c, $d);
+                }
 
 
                 //5 => ["Vốn chủ sở hữu"],
-                $a = $tab1->filter('#\34 10 > td:nth-child(2)')->text();
-                $b = $tab1->filter('#\34 10 > td:nth-child(3)')->text();
-                $c = $tab1->filter('#\34 10 > td:nth-child(4)')->text();
-                $d = $tab1->filter('#\34 10 > td:nth-child(5)')->text();
-                array_push($data[5], $a, $b, $c, $d);
+                // if(->count() > 0) {}
+                if($tab1->filter('#\34 10 > td:nth-child(2)')->count() > 0) {
+                    $a = $tab1->filter('#\34 10 > td:nth-child(2)')->text();
+                    $b = $tab1->filter('#\34 10 > td:nth-child(3)')->text();
+                    $c = $tab1->filter('#\34 10 > td:nth-child(4)')->text();
+                    $d = $tab1->filter('#\34 10 > td:nth-child(5)')->text();
+                    array_push($data[5], $a, $b, $c, $d);
+                }
+                
 
-                // 6 => ["Hàng tồn kho"],
-                $a = $tab1->filter('#\34 10 > td:nth-child(2)')->text();
-                $b = $tab1->filter('#\34 10 > td:nth-child(3)')->text();
-                $c = $tab1->filter('#\34 10 > td:nth-child(4)')->text();
-                $d = $tab1->filter('#\34 10 > td:nth-child(5)')->text();
-                array_push($data[6], $a, $b, $c, $d);
+                // // 6 => ["Hàng tồn kho"],
+                if($tab1->filter('#\34 10 > td:nth-child(2)')->count() > 0) {
+                    $a = $tab1->filter('#\34 10 > td:nth-child(2)')->text();
+                    $b = $tab1->filter('#\34 10 > td:nth-child(3)')->text();
+                    $c = $tab1->filter('#\34 10 > td:nth-child(4)')->text();
+                    $d = $tab1->filter('#\34 10 > td:nth-child(5)')->text();
+                    array_push($data[6], $a, $b, $c, $d);
+                }
 
-                // 7 => ["Tài sản cố định hữu hình"],
-                $a = $tab1->filter('#\32 21 > td:nth-child(2)')->text();
-                $b = $tab1->filter('#\32 21 > td:nth-child(3)')->text();
-                $c = $tab1->filter('#\32 21 > td:nth-child(4)')->text();
-                $d = $tab1->filter('#\32 21 > td:nth-child(5)')->text();
-                array_push($data[7], $a, $b, $c, $d);
+                // // 7 => ["Tài sản cố định hữu hình"],
+                if($tab1->filter('#\32 21 > td:nth-child(2)')->count() > 0) {
+                    $a = $tab1->filter('#\32 21 > td:nth-child(2)')->text();
+                    $b = $tab1->filter('#\32 21 > td:nth-child(3)')->text();
+                    $c = $tab1->filter('#\32 21 > td:nth-child(4)')->text();
+                    $d = $tab1->filter('#\32 21 > td:nth-child(5)')->text();
+                    array_push($data[7], $a, $b, $c, $d);
+                }
+                
 
-                // 8 => ["Tài sản cố định"],
-                $a = $tab1->filter('#\32 20 > td:nth-child(2)')->text();
-                $b = $tab1->filter('#\32 20 > td:nth-child(3)')->text();
-                $c = $tab1->filter('#\32 20 > td:nth-child(4)')->text();
-                $d = $tab1->filter('#\32 20 > td:nth-child(5)')->text();
-                array_push($data[8], $a, $b, $c, $d);
+                // // 8 => ["Tài sản cố định"],
+                if($tab1->filter('#\32 20 > td:nth-child(2)')->count() > 0) {
+                    $a = $tab1->filter('#\32 20 > td:nth-child(2)')->text();
+                    $b = $tab1->filter('#\32 20 > td:nth-child(3)')->text();
+                    $c = $tab1->filter('#\32 20 > td:nth-child(4)')->text();
+                    $d = $tab1->filter('#\32 20 > td:nth-child(5)')->text();
+                    array_push($data[8], $a, $b, $c, $d);
+                }
+                
 
-                // 9 => ["Tổng lợi nhuận kế toán trước thuế"], 
-                $a = $tab2->filter('#\35 0 > td:nth-child(2)')->text();
-                $b = $tab2->filter('#\35 0 > td:nth-child(3)')->text();
-                $c = $tab2->filter('#\35 0 > td:nth-child(4)')->text();
-                $d = $tab2->filter('#\35 0 > td:nth-child(5)')->text();
-                array_push($data[9], $a, $b, $c, $d);
+                // // 9 => ["Tổng lợi nhuận kế toán trước thuế"], 
+                if($tab2->filter('#\35 0 > td:nth-child(2)')->count() > 0) {
+                    $a = $tab2->filter('#\35 0 > td:nth-child(2)')->text();
+                    $b = $tab2->filter('#\35 0 > td:nth-child(3)')->text();
+                    $c = $tab2->filter('#\35 0 > td:nth-child(4)')->text();
+                    $d = $tab2->filter('#\35 0 > td:nth-child(5)')->text();
+                    array_push($data[9], $a, $b, $c, $d);
+                }
+                
 
-                // 10 => ["Chi phí thuế TNDN hiện hành"],
-                $a = $tab2->filter('#\35 1 > td:nth-child(2)')->text();
-                $b = $tab2->filter('#\35 1 > td:nth-child(3)')->text();
-                $c = $tab2->filter('#\35 1 > td:nth-child(4)')->text();
-                $d = $tab2->filter('#\35 1 > td:nth-child(5)')->text();
-                array_push($data[10], $a, $b, $c, $d);
+                // // 10 => ["Chi phí thuế TNDN hiện hành"],
+                if($tab2->filter('#\35 1 > td:nth-child(2)')->count() > 0) {
+                    $a = $tab2->filter('#\35 1 > td:nth-child(2)')->text();
+                    $b = $tab2->filter('#\35 1 > td:nth-child(3)')->text();
+                    $c = $tab2->filter('#\35 1 > td:nth-child(4)')->text();
+                    $d = $tab2->filter('#\35 1 > td:nth-child(5)')->text();
+                    array_push($data[10], $a, $b, $c, $d);
+                }
+                
 
-                // 11 => ["Lợi nhuận sau thuế thu nhập doanh nghiệp"],
-                $a = $tab2->filter('#\36 0 > td:nth-child(2)')->text();
-                $b = $tab2->filter('#\36 0 > td:nth-child(3)')->text();
-                $c = $tab2->filter('#\36 0 > td:nth-child(4)')->text();
-                $d = $tab2->filter('#\36 0 > td:nth-child(5)')->text();
-                array_push($data[11], $a, $b, $c, $d);
+                // // 11 => ["Lợi nhuận sau thuế thu nhập doanh nghiệp"],
+                if($tab2->filter('#\36 0 > td:nth-child(2)')->count() > 0) {
+                    $a = $tab2->filter('#\36 0 > td:nth-child(2)')->text();
+                    $b = $tab2->filter('#\36 0 > td:nth-child(3)')->text();
+                    $c = $tab2->filter('#\36 0 > td:nth-child(4)')->text();
+                    $d = $tab2->filter('#\36 0 > td:nth-child(5)')->text();
+                    array_push($data[11], $a, $b, $c, $d);
+                }
+                
 
-                // 12 => ["Lợi nhuận sau thuế của công ty mẹ"],
-                $a = $tab2->filter('#\36 2 > td:nth-child(2)')->text();
-                $b = $tab2->filter('#\36 2 > td:nth-child(3)')->text();
-                $c = $tab2->filter('#\36 2 > td:nth-child(4)')->text();
-                $d = $tab2->filter('#\36 2 > td:nth-child(5)')->text();
-                array_push($data[12], $a, $b, $c, $d);
+                // // 12 => ["Lợi nhuận sau thuế của công ty mẹ"],
+                if($tab2->filter('#\36 2 > td:nth-child(2)')->count() > 0) {
+                    $a = $tab2->filter('#\36 2 > td:nth-child(2)')->text();
+                    $b = $tab2->filter('#\36 2 > td:nth-child(3)')->text();
+                    $c = $tab2->filter('#\36 2 > td:nth-child(4)')->text();
+                    $d = $tab2->filter('#\36 2 > td:nth-child(5)')->text();
+                    array_push($data[12], $a, $b, $c, $d);
+                }
+               
 
-                // 13 => ["Chi phí lãi vay"]
-                $a = $tab2->filter('#\32 3 > td:nth-child(2)')->text();
-                $b = $tab2->filter('#\32 3 > td:nth-child(3)')->text();
-                $c = $tab2->filter('#\32 3 > td:nth-child(4)')->text();
-                $d = $tab2->filter('#\32 3 > td:nth-child(5)')->text();
-                array_push($data[13], $a, $b, $c, $d);
+                // // 13 => ["Chi phí lãi vay"]
+                if($tab2->filter('#\32 3 > td:nth-child(2)')->count() > 0) {
+                    $a = $tab2->filter('#\32 3 > td:nth-child(2)')->text();
+                    $b = $tab2->filter('#\32 3 > td:nth-child(3)')->text();
+                    $c = $tab2->filter('#\32 3 > td:nth-child(4)')->text();
+                    $d = $tab2->filter('#\32 3 > td:nth-child(5)')->text();
+                    array_push($data[13], $a, $b, $c, $d);
+                }
+                
             }
             //calc 2
             foreach($data[0] as $index => $val) {
