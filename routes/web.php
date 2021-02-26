@@ -16,3 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [ExportController::class, 'index']);
 
 Route::get('/export', [ExportController::class, 'export']);
+
+Route::get('/all', [ExportController::class, 'all']);
+
+Route::get('/export-all', [ExportController::class, 'exportAll']);
