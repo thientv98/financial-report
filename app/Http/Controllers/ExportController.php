@@ -437,7 +437,7 @@ class ExportController extends Controller
 
             // add to archive
             $this->addToZip('report/vertical/'.$request->year_from.'-'.$request->year_to);
-            return 'Add to archived';
+            return Storage::disk('public')->download('report/vertical/'.$request->year_from.'-'.$request->year_to.'/Export_All.zip');
         // }catch(\InvalidArgumentException $e) {
         //     abort(404);
         // }
@@ -625,7 +625,7 @@ class ExportController extends Controller
             }
 
             $this->addToZip('report/horizontal/'.$request->year_from.'-'.$request->year_to);
-            return 'Add to archived';
+            return Storage::disk('public')->download('report/vertical/'.$request->year_from.'-'.$request->year_to.'/Export_All.zip');
         // }catch(\InvalidArgumentException $e) {
         //     abort(404);
         // }
