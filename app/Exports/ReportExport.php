@@ -8,8 +8,9 @@ use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\WithEvents;
-
-class ReportExport implements FromView, ShouldAutoSize, WithEvents
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+class ReportExport implements FromView, ShouldAutoSize, WithEvents, WithColumnFormatting
 {
     protected $code = '';
     protected $head = null;
@@ -27,7 +28,7 @@ class ReportExport implements FromView, ShouldAutoSize, WithEvents
     {
         return [            
             AfterSheet::class => function(AfterSheet $event) {
-                $event->sheet->freezePane('B2');
+                $event->sheet->freezePane('B3');
             },
         ];
     }
@@ -42,5 +43,15 @@ class ReportExport implements FromView, ShouldAutoSize, WithEvents
             'head' => $this->head,
             'body' => $this->data
         ]);
+    }
+
+     /**
+     * @return array
+     */
+    public function columnFormats(): array
+    {
+        return [
+            NumberFormat::FORMAT_NUMBER_00,
+        ];
     }
 }

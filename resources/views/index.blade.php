@@ -41,9 +41,34 @@
                     <span class="login100-form-title p-b-34">
                         Download Report
                     </span>
-                    <div class="wrap-input100 rs1-wrap-input100 validate-input m-b-20" data-validate="Type user name" style="width: 100%">
+                    <div class="wrap-input100 rs1-wrap-input100 validate-input m-b-20" data-validate="Type Code" style="width: 100%">
                         <input id="code" class="input100" type="text" name="code" placeholder="Enter Code Here">
                         <span class="focus-input100"></span>
+                    </div>
+
+                    <div class="wrap-input100 rs1-wrap-input100 validate-input m-b-20" data-validate="Year From">
+                        <input id="year_from" class="input100" type="number" min="1990" name="year_from" placeholder="Year From" value="2015">
+                        <span class="focus-input100"></span>
+                    </div>
+
+                    <div class="wrap-input100 rs1-wrap-input100 validate-input m-b-20" data-validate="Year End">
+                        <input id="year_to" class="input100" type="number" min="1990" name="year_to" placeholder="Year End" value="2020">
+                        <span class="focus-input100"></span>
+                    </div>
+
+                    <div class="validate-input m-b-20" style="width: 100%">
+                        <div class="form-check">
+                            <input class="form-check-input ml-0" type="radio" name="horizontal" value="1" checked>
+                            <label class="form-check-label" for="flexRadioDefault1">
+                                Horizontal
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input ml-0" type="radio" name="horizontal" value="0" id="flexRadioDefault2">
+                            <label class="form-check-label" for="flexRadioDefault2">
+                                Vertical
+                            </label>
+                        </div>
                     </div>
                     {{-- <div class="wrap-input100 rs1-wrap-input100 validate-input m-b-20" data-validate="Type user name">
                         <input id="first-name" class="input100" type="text" name="username" placeholder="User name">
@@ -100,6 +125,17 @@
     <script src="/vendor/countdowntime/countdowntime.js"></script>
 
     <script src="/js/main.js"></script>
+
+    <script>
+        $(function(){
+            $("#year_to").change(function(){
+                if($("#year_from").val() > $(this).val()){
+                    $("#year_from").val($(this).val());
+                }
+                $("#year_from").prop('max', $(this).val());
+            });
+        });
+    </script>
 
     <!-- Mirrored from colorlib.com/etc/lf/Login_v17/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 23 Feb 2021 04:21:39 GMT -->
 
