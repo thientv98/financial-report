@@ -20,3 +20,5 @@ Route::get('/export', [ExportController::class, 'export']);
 Route::get('/all', [ExportController::class, 'all']);
 
 Route::get('/export-all', [ExportController::class, 'exportAll']);
+
+Route::get('/all2', [ExportController::class, 'exportAll2']);

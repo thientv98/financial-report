@@ -327,6 +327,360 @@ class ExportController extends Controller
         return $this->exportVerticalAll($request, $years);
     }
 
+    public function exportAll2(Request $request) {
+        set_time_limit(0);
+        $request->year_from = 2010;
+        $request->year_to = 2020;
+        $request->request->add(['year_from' => 2010, 'year_to' => 2020]);
+
+        $years = [];
+        for($i = $request->year_from; $i<=$request->year_to; $i++) {
+            array_push($years, $i);
+        }
+        return $this->exportHorizontalAll3($request, $years);
+    }
+
+    public function exportHorizontalAll3(Request $request, $years) {
+        // try{
+            $client = new Client();
+            // $code = $request->code;
+            $codes = $this->getCodes();
+
+            foreach($codes as $key => $code){
+                $data = [
+                    0 => ["ROA"],
+                    1 => ["TĂNG TRƯỞNG NỢ"]
+                ];
+    
+                $head = [''];
+                $filePath = 'report/all2/horizontal/'.$request->year_from.'-'.$request->year_to.'/Report_'.$code.'_Horizontal'.'.xlsx';
+                if(Storage::exists($filePath)) {
+                    continue;
+                }
+                foreach ($years as $year) {
+
+                    $tab1 = $client->request('GET', 'https://s.cafef.vn/bao-cao-tai-chinh/'.$code.'/BSheet/'.$year.'/4/0/0/ket-qua-hoat-dong-kinh-doanh-cong-ty-co-phan-dau-tu-the-gioi-di-dong.chn');
+                    $tab2 = $client->request('GET', 'https://s.cafef.vn/bao-cao-tai-chinh/'.$code.'/IncSta/'.$year.'/4/0/0/ket-qua-hoat-dong-kinh-doanh-cong-ty-co-phan-dau-tu-the-gioi-di-dong.chn');
+
+                    //head
+                    $a = $tab1->filter('#tblGridData td:nth-child(2)')->text();
+                    $b = $tab1->filter('#tblGridData td:nth-child(3)')->text();
+                    $c = $tab1->filter('#tblGridData td:nth-child(4)')->text();
+                    $d = $tab1->filter('#tblGridData td:nth-child(5)')->text();
+                    array_push($head, $a, $b, $c, $d);
+    
+                    // 0 
+                    $aa1 = $tab2->filter('#\36 0 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\36 0 > td:nth-child(2)')->text()) : 0;
+                    $aa2 = $tab1->filter('#\30 01 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\30 01 > td:nth-child(2)')->text()) : 0;
+                    $a = is_numeric($aa1) && is_numeric($aa2) && $aa2!=0 ? $aa1/$aa2 : 0;
+
+                    $bb1 = $tab2->filter('#\36 0 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\36 0 > td:nth-child(3)')->text()) : 0;
+                    $bb2 = $tab1->filter('#\30 01 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\30 01 > td:nth-child(3)')->text()) : 0;
+                    $b = is_numeric($bb1) && is_numeric($bb2) && $bb2!=0 ? $bb1/$bb2 : 0;
+
+                    $cc1 = $tab2->filter('#\36 0 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\36 0 > td:nth-child(4)')->text()) : 0;
+                    $cc2 = $tab1->filter('#\30 01 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\30 01 > td:nth-child(4)')->text()) : 0;
+                    $c = is_numeric($cc1) && is_numeric($cc2) && $aa2!=0 ? $cc1/$aa2 : 0;
+
+                    $dd1 = $tab2->filter('#\36 0 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\36 0 > td:nth-child(5)')->text()) : 0;
+                    $dd2 = $tab1->filter('#\30 01 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\30 01 > td:nth-child(5)')->text()) : 0;
+                    $d = is_numeric($dd1) && is_numeric($dd2) && $dd2!=0 ? $dd1/$dd2 : 0;
+                    array_push($data[0], $a, $b, $c, $d);
+
+                    
+                    $a1 = $tab1->filter('#\33 30 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\33 30 > td:nth-child(2)')->text()) : '';
+                    $b1 = $tab1->filter('#\33 30 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\33 30 > td:nth-child(3)')->text()) : '';
+                    $c1 = $tab1->filter('#\33 30 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\33 30 > td:nth-child(4)')->text()) : '';
+                    $d1 = $tab1->filter('#\33 30 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\33 30 > td:nth-child(5)')->text()) : '';
+                    array_push($data[1], $a1, $b1, $c1, $d1);
+                }
+
+                // return $data;
+                //calc 2
+                $temp = $data[1];
+                foreach($temp as $index => $val) {
+                    if($index > 0 && $index < count($temp) - 1) {
+                        $a = $data[1][$index];
+                        $b = $data[1][$index+1];
+                        $temp[$index] = is_numeric($a) && is_numeric($b) && $a != 0 ? ($b-$a)/$a : 0;
+                    }
+                    if($index == count($temp) - 1) {
+                        $temp[$index] = '';
+                    }
+                }
+                $data[1] = $temp;
+                Excel::store(new ReportExport($code, $head, $data), $filePath);
+            }
+
+            return "OK";
+            // $this->addToZip('report/horizontal/'.$request->year_from.'-'.$request->year_to);
+            // return Storage::disk('public')->download('report/vertical/'.$request->year_from.'-'.$request->year_to.'/Export_All.zip');
+        // }catch(\InvalidArgumentException $e) {
+        //     abort(404);
+        // }
+    }
+
+    public function exportHorizontalAll2(Request $request, $years) {
+        // try{
+            $client = new Client();
+            // $code = $request->code;
+            $codes = $this->getCodes();
+
+            foreach($codes as $key => $code){
+                $data = [
+                    0 => ["Doanh thu thuần về bán hàng và cung cấp dịch vụ"],
+                    1 => ["Tăng trưởng doanh thu"],
+                    2 => ["Thuế thu nhập doanh nghiệp"],
+                    3 => ["Lợi nhuận trươc thuế"],
+                    4 => ["Thuế thu nhập doanh nghiệp/Lợi nhuận trước thuế"],
+                    5 => ["Khấu hao"],
+                    6 => ["Lợi nhuận sau thuế thu nhập doanh nghiệp"],
+                    7 => ["Dòng tiền"],
+                    8 => ["Tài sản cố định hữu hình"],
+                    9 => ["Tổng tài sản"], 
+                    10 => ["Tính hữu hình của tài sản"],
+                    11 => ["Nợ dài hạn"]
+                ];
+    
+                $head = [''];
+                $filePath = 'report/all2/horizontal/'.$request->year_from.'-'.$request->year_to.'/Report_'.$code.'_Horizontal'.'.xlsx';
+                echo $code."<br>";
+                if(Storage::exists($filePath)) {
+                    continue;
+                }
+                foreach ($years as $year) {
+
+                    $tab1 = $client->request('GET', 'https://s.cafef.vn/bao-cao-tai-chinh/'.$code.'/BSheet/'.$year.'/4/0/0/ket-qua-hoat-dong-kinh-doanh-cong-ty-co-phan-dau-tu-the-gioi-di-dong.chn');
+                    $tab2 = $client->request('GET', 'https://s.cafef.vn/bao-cao-tai-chinh/'.$code.'/IncSta/'.$year.'/4/0/0/ket-qua-hoat-dong-kinh-doanh-cong-ty-co-phan-dau-tu-the-gioi-di-dong.chn');
+                    $tab3 = $client->request('GET', 'https://s.cafef.vn/bao-cao-tai-chinh/'.$code.'/CashFlow/'.$year.'/4/0/0/ket-qua-hoat-dong-kinh-doanh-cong-ty-co-phan-dau-tu-the-gioi-di-dong.chn');
+
+                    //head
+                    $a = $tab1->filter('#tblGridData td:nth-child(2)')->text();
+                    $b = $tab1->filter('#tblGridData td:nth-child(3)')->text();
+                    $c = $tab1->filter('#tblGridData td:nth-child(4)')->text();
+                    $d = $tab1->filter('#tblGridData td:nth-child(5)')->text();
+                    array_push($head, $a, $b, $c, $d);
+    
+                    // 0 
+                    $a = $tab2->filter('#\31 0 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\31 0 > td:nth-child(2)')->text()) : '';
+                    $b = $tab2->filter('#\31 0 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\31 0 > td:nth-child(3)')->text()) : '';
+                    $c = $tab2->filter('#\31 0 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\31 0 > td:nth-child(4)')->text()) : '';
+                    $d = $tab2->filter('#\31 0 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\31 0 > td:nth-child(5)')->text()) : '';
+                    array_push($data[0], $a, $b, $c, $d);
+                    
+
+                    // 1
+                    $a1 = "";
+                    $b1 = "";
+                    $c1 = "";
+                    $d1 = "";
+                    array_push($data[1], $a1, $b1, $c1, $d1);
+
+                    // 2
+                    $a2 = $tab2->filter('#\35 1 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 1 > td:nth-child(2)')->text()) : '';
+                    $b2 = $tab2->filter('#\35 1 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 1 > td:nth-child(3)')->text()) : '';
+                    $c2 = $tab2->filter('#\35 1 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 1 > td:nth-child(4)')->text()) : '';
+                    $d2 = $tab2->filter('#\35 1 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 1 > td:nth-child(5)')->text()) : '';
+                    array_push($data[2], $a2, $b2, $c2, $d2);
+
+                    // 3
+                    $a3 = $tab2->filter('#\35 0 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 0 > td:nth-child(2)')->text()) : '';
+                    $b3 = $tab2->filter('#\35 0 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 0 > td:nth-child(3)')->text()) : '';
+                    $c3 = $tab2->filter('#\35 0 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 0 > td:nth-child(4)')->text()) : '';
+                    $d3 = $tab2->filter('#\35 0 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 0 > td:nth-child(5)')->text()) : '';
+                    array_push($data[3], $a3, $b3, $c3, $d3);
+
+                    // 4
+                    $a4 = is_numeric($a2) && is_numeric($a3) && $a3!=0 ? $a2/$a3 : 0;
+                    $b4 = is_numeric($b2) && is_numeric($b3) && $b3!=0 ? $b2/$b3 : 0;
+                    $c4 = is_numeric($c2) && is_numeric($c3) && $c3!=0 ? $c2/$c3 : 0;
+                    $d4 = is_numeric($d2) && is_numeric($d3) && $d3!=0 ? $d2/$d3 : 0;
+                    array_push($data[4], $a4, $b4, $c4, $d4);
+
+                    // 5
+                    $a5 = $tab3->filter('#\30 2 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab3->filter('#\30 2 > td:nth-child(2)')->text()) : '';
+                    $b5 = $tab3->filter('#\30 2 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab3->filter('#\30 2 > td:nth-child(3)')->text()) : '';
+                    $c5 = $tab3->filter('#\30 2 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab3->filter('#\30 2 > td:nth-child(4)')->text()) : '';
+                    $d5 = $tab3->filter('#\30 2 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab3->filter('#\30 2 > td:nth-child(5)')->text()) : '';
+                    array_push($data[5], $a5, $b5, $c5, $d5);
+
+                    // 6
+                    $a6 = $tab2->filter('#\36 0 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\36 0 > td:nth-child(2)')->text()) : '';
+                    $b6 = $tab2->filter('#\36 0 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\36 0 > td:nth-child(3)')->text()) : '';
+                    $c6 = $tab2->filter('#\36 0 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\36 0 > td:nth-child(4)')->text()) : '';
+                    $d6 = $tab2->filter('#\36 0 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\36 0 > td:nth-child(5)')->text()) : '';
+                    array_push($data[6], $a6, $b6, $c6, $d6);
+
+                    // 7
+                    $a7 = is_numeric($a6) || is_numeric($a5) ? intval($a6)+intval($a5) : 0;
+                    $b7 = is_numeric($b6) || is_numeric($b5) ? intval($b6)+intval($b5) : 0;
+                    $c7 = is_numeric($c6) || is_numeric($c5) ? intval($c6)+intval($c5) : 0;
+                    $d7 = is_numeric($d6) || is_numeric($d5) ? intval($d6)+intval($d5) : 0;
+                    array_push($data[7], $a7, $b7, $c7, $d7);
+
+                    // 8
+                    $a8 = $tab1->filter('#\32 21 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\32 21 > td:nth-child(2)')->text()) : '';
+                    $b8 = $tab1->filter('#\32 21 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\32 21 > td:nth-child(3)')->text()) : '';
+                    $c8 = $tab1->filter('#\32 21 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\32 21 > td:nth-child(4)')->text()) : '';
+                    $d8 = $tab1->filter('#\32 21 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\32 21 > td:nth-child(5)')->text()) : '';
+                    array_push($data[8], $a8, $b8, $c8, $d8);
+
+                    // 9
+                    $a9 = $tab1->filter('#\30 01 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\30 01 > td:nth-child(2)')->text()) : '';
+                    $b9 = $tab1->filter('#\30 01 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\30 01 > td:nth-child(3)')->text()) : '';
+                    $c9 = $tab1->filter('#\30 01 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\30 01 > td:nth-child(4)')->text()) : '';
+                    $d9 = $tab1->filter('#\30 01 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\30 01 > td:nth-child(5)')->text()) : '';
+                    array_push($data[9], $a9, $b9, $c9, $d9);
+
+                    //10
+                    $a10 = is_numeric($a8) && is_numeric($a9) && $a9!=0 ? $a8/$a9 : 0;
+                    $b10 = is_numeric($b8) && is_numeric($b9) && $b9!=0 ? $b8/$b9 : 0;
+                    $c10 = is_numeric($c8) && is_numeric($c9) && $c9!=0 ? $c8/$c9 : 0;
+                    $d10 = is_numeric($d8) && is_numeric($d9) && $d9!=0 ? $d8/$d9 : 0;
+                    array_push($data[10], $a10, $b10, $c10, $d10);
+
+                    // 11
+                    $a11 = $tab1->filter('#\33 30 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\33 30 > td:nth-child(2)')->text()) : '';
+                    $b11 = $tab1->filter('#\33 30 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\33 30 > td:nth-child(3)')->text()) : '';
+                    $c11 = $tab1->filter('#\33 30 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\33 30 > td:nth-child(4)')->text()) : '';
+                    $d11 = $tab1->filter('#\33 30 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\33 30 > td:nth-child(5)')->text()) : '';
+                    array_push($data[11], $a11, $b11, $c11, $d11);
+                }
+
+                //calc 2
+                foreach($data[0] as $index => $val) {
+                    if($index > 0 && $index < count($data[0]) - 1) {
+                        $a = $data[0][$index];
+                        $b = $data[0][$index+1];
+                        $data[1][$index] = is_numeric($a) && is_numeric($b) && $a != 0 ? ($b-$a)/$a : 0;
+                    }
+                }
+                Excel::store(new ReportExport($code, $head, $data), $filePath);
+            }
+
+            return "OK";
+            // $this->addToZip('report/horizontal/'.$request->year_from.'-'.$request->year_to);
+            // return Storage::disk('public')->download('report/vertical/'.$request->year_from.'-'.$request->year_to.'/Export_All.zip');
+        // }catch(\InvalidArgumentException $e) {
+        //     abort(404);
+        // }
+    }
+
+    public function exportVerticalAll2(Request $request, $years) {
+        // try{
+            $client = new Client();
+
+            $codes = $this->getCodes();
+            
+            foreach($codes as $key => $code){
+                $head = [
+                    "",
+                    "Doanh thu thuần về bán hàng và cung cấp dịch vụ",
+                    "Tăng trưởng doanh thu",
+                    "Thuế thu nhập doanh nghiệp",
+                    "Lợi nhuận trươc thuế",
+                    "Thuế thu nhập doanh nghiệp/Lợi nhuận trước thuế",
+                    "Khấu hao",
+                    "Lợi nhuận sau thuế thu nhập doanh nghiệp",
+                    "Dòng tiền",
+                    "Tài sản cố định hữu hình",
+                    "Tổng tài sản",
+                    "Tính hữu hình của tài sản"
+                ];
+                $data = [];
+                $filePath = 'report/all2/vertical/'.$request->year_from.'-'.$request->year_to.'/Report_'.$code.'_Vertical'.'.xlsx';
+                if(Storage::exists($filePath)) {
+                    continue;
+                }
+                foreach ($years as $year) {
+                    $tab1 = $client->request('GET', 'https://s.cafef.vn/bao-cao-tai-chinh/'.$code.'/BSheet/'.$year.'/4/0/0/ket-qua-hoat-dong-kinh-doanh-cong-ty-co-phan-dau-tu-the-gioi-di-dong.chn');
+                    $tab2 = $client->request('GET', 'https://s.cafef.vn/bao-cao-tai-chinh/'.$code.'/IncSta/'.$year.'/4/0/0/ket-qua-hoat-dong-kinh-doanh-cong-ty-co-phan-dau-tu-the-gioi-di-dong.chn');
+                    $tab3 = $client->request('GET', 'https://s.cafef.vn/bao-cao-tai-chinh/'.$code.'/CashFlow/'.$year.'/4/0/0/ket-qua-hoat-dong-kinh-doanh-cong-ty-co-phan-dau-tu-the-gioi-di-dong.chn');
+
+                    //quy 1
+                    $a = str_replace(',', '', $tab1->filter('#tblGridData td:nth-child(2)')->text());
+                    $a0 = $tab2->filter('#\31 0 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\31 0 > td:nth-child(2)')->text()) : '';
+                    $a1 = "";
+                    $a2 = $tab2->filter('#\35 1 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 1 > td:nth-child(2)')->text()) : '';
+                    $a3 = $tab2->filter('#\35 0 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 0 > td:nth-child(2)')->text()) : '';
+                    $a4 = is_numeric($a2) && is_numeric($a3) && $a3!=0 ? $a2/$a3 : 0;
+                    $a5 = $tab3->filter('#\30 2 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab3->filter('#\30 2 > td:nth-child(2)')->text()) : '';
+                    $a6 = $tab2->filter('#\36 0 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\36 0 > td:nth-child(2)')->text()) : '';
+                    $a7 = is_numeric($a6) && is_numeric($a5) ? $a6+$a5 : 0;
+                    $a8 = $tab1->filter('#\32 21 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\32 21 > td:nth-child(2)')->text()) : '';
+                    $a9 = $tab1->filter('#\30 01 > td:nth-child(2)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\30 01 > td:nth-child(2)')->text()) : '';
+                    $a10 = is_numeric($a8) && is_numeric($a9) && $a9!=0 ? $a8/$a9 : 0;
+
+                    array_push($data, [$a, $a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7, $a8, $a9, $a10]);
+
+                    //quy 2
+                    $a = str_replace(',', '', $tab1->filter('#tblGridData td:nth-child(3)')->text());
+                    $a0 = $tab2->filter('#\31 0 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\31 0 > td:nth-child(3)')->text()) : '';
+                    $a1 = "";
+                    $a2 = $tab2->filter('#\35 1 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 1 > td:nth-child(3)')->text()) : '';
+                    $a3 = $tab2->filter('#\35 0 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 0 > td:nth-child(3)')->text()) : '';
+                    $a4 = is_numeric($a2) && is_numeric($a3) && $a3!=0 ? $a2/$a3 : 0;
+                    $a5 = $tab3->filter('#\30 2 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab3->filter('#\30 2 > td:nth-child(3)')->text()) : '';
+                    $a6 = $tab2->filter('#\36 0 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\36 0 > td:nth-child(3)')->text()) : '';
+                    $a7 = is_numeric($a6) && is_numeric($a5) ? $a6+$a5 : 0;
+                    $a8 = $tab1->filter('#\32 21 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\32 21 > td:nth-child(3)')->text()) : '';
+                    $a9 = $tab1->filter('#\30 01 > td:nth-child(3)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\30 01 > td:nth-child(3)')->text()) : '';
+                    $a10 = is_numeric($a8) && is_numeric($a9) && $a9!=0 ? $a8/$a9 : 0;
+
+                    array_push($data, [$a, $a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7, $a8, $a9, $a10]);
+
+                    // //quy 3
+                    $a = str_replace(',', '', $tab1->filter('#tblGridData td:nth-child(4)')->text());
+                    $a0 = $tab2->filter('#\31 0 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\31 0 > td:nth-child(4)')->text()) : '';
+                    $a1 = "";
+                    $a2 = $tab2->filter('#\35 1 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 1 > td:nth-child(4)')->text()) : '';
+                    $a3 = $tab2->filter('#\35 0 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 0 > td:nth-child(4)')->text()) : '';
+                    $a4 = is_numeric($a2) && is_numeric($a3) && $a3!=0 ? $a2/$a3 : 0;
+                    $a5 = $tab3->filter('#\30 2 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab3->filter('#\30 2 > td:nth-child(4)')->text()) : '';
+                    $a6 = $tab2->filter('#\36 0 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\36 0 > td:nth-child(4)')->text()) : '';
+                    $a7 = is_numeric($a6) && is_numeric($a5) ? $a6+$a5 : 0;
+                    $a8 = $tab1->filter('#\32 21 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\32 21 > td:nth-child(4)')->text()) : '';
+                    $a9 = $tab1->filter('#\30 01 > td:nth-child(4)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\30 01 > td:nth-child(4)')->text()) : '';
+                    $a10 = is_numeric($a8) && is_numeric($a9) && $a9!=0 ? $a8/$a9 : 0;
+
+                    array_push($data, [$a, $a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7, $a8, $a9, $a10]);
+
+                    // //quy 4
+                    $a = str_replace(',', '', $tab1->filter('#tblGridData td:nth-child(5)')->text());
+                    $a0 = $tab2->filter('#\31 0 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\31 0 > td:nth-child(5)')->text()) : '';
+                    $a1 = "";
+                    $a2 = $tab2->filter('#\35 1 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 1 > td:nth-child(5)')->text()) : '';
+                    $a3 = $tab2->filter('#\35 0 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 0 > td:nth-child(5)')->text()) : '';
+                    $a4 = is_numeric($a2) && is_numeric($a3) && $a3!=0 ? $a2/$a3 : 0;
+                    $a5 = $tab3->filter('#\30 2 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab3->filter('#\30 2 > td:nth-child(5)')->text()) : '';
+                    $a6 = $tab2->filter('#\36 0 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\36 0 > td:nth-child(5)')->text()) : '';
+                    $a7 = is_numeric($a6) && is_numeric($a5) ? $a6+$a5 : 0;
+                    $a8 = $tab1->filter('#\32 21 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\32 21 > td:nth-child(5)')->text()) : '';
+                    $a9 = $tab1->filter('#\30 01 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\30 01 > td:nth-child(5)')->text()) : '';
+                    $a10 = is_numeric($a8) && is_numeric($a9) && $a9!=0 ? $a8/$a9 : 0;
+
+                    array_push($data, [$a, $a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7, $a8, $a9, $a10]);
+                }
+                
+                foreach($data as $index => $val) {
+                    if($index < count($data) - 1) {
+                        $a = $data[$index][1];
+                        $b = $data[$index+1][1];
+                        $data[$index][2] = is_numeric($a) && is_numeric($b) && $a != 0 ? ($b-$a)/$a : 0;
+                    }
+                }
+                Excel::store(new ReportExport($code, $head, $data), $filePath);
+            }
+
+            // add to archive
+            return "Add to archive";
+            // $this->addToZip('report/vertical/'.$request->year_from.'-'.$request->year_to);
+            // return Storage::disk('public')->download('report/vertical/'.$request->year_from.'-'.$request->year_to.'/Export_All.zip');
+        // }catch(\InvalidArgumentException $e) {
+        //     abort(404);
+        // }
+    }
+
     public function exportVerticalAll(Request $request, $years) {
         // try{
             $client = new Client();
@@ -436,8 +790,9 @@ class ExportController extends Controller
             }
 
             // add to archive
-            $this->addToZip('report/vertical/'.$request->year_from.'-'.$request->year_to);
-            return Storage::disk('public')->download('report/vertical/'.$request->year_from.'-'.$request->year_to.'/Export_All.zip');
+            return "Add to archive";
+            // $this->addToZip('report/vertical/'.$request->year_from.'-'.$request->year_to);
+            // return Storage::disk('public')->download('report/vertical/'.$request->year_from.'-'.$request->year_to.'/Export_All.zip');
         // }catch(\InvalidArgumentException $e) {
         //     abort(404);
         // }
@@ -653,6 +1008,7 @@ class ExportController extends Controller
 
     public function getCodes() {
         return [
+            "AAA",
             "AAM",
             "ABS",
             "ABT",
@@ -863,7 +1219,6 @@ class ExportController extends Controller
             "PAC",
             "PAN",
             "PC1",
-            "PND",
             "PDR",
             "PET",
             "PGC",
@@ -878,26 +1233,17 @@ class ExportController extends Controller
             "PNC",
             "PNJ",
             "POM",
-            "PVD",
             "POW",
             "PPC",
             "PSH",
-            "PVT",
             "PTB",
             "PTC",
             "PTL",
+            "PVD",
+            "PVT",
             "PXI",
             "PXS",
             "PXT",
-            "SFG",
-            "SFC",
-            "SCS",
-            "SCR",
-            "SCD",
-            "SC5",
-            "SBV",
-            "SBT",
-            "SBA",
             "QBS",
             "QCG",
             "RAL",
@@ -909,6 +1255,15 @@ class ExportController extends Controller
             "SAB",
             "SAM",
             "SAV",
+            "SBA",
+            "SBT",
+            "SBV",
+            "SC5",
+            "SCD",
+            "SCR",
+            "SCS",
+            "SFC",
+            "SFG",
             "SFG",
             "SFI",
             "SGN",
