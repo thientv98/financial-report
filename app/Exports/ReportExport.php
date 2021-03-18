@@ -28,7 +28,7 @@ class ReportExport implements FromView, ShouldAutoSize, WithEvents, WithColumnFo
     {
         return [            
             AfterSheet::class => function(AfterSheet $event) {
-                $event->sheet->freezePane('B3');
+                $event->sheet->freezePane('C2');
             },
         ];
     }

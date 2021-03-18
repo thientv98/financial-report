@@ -23,6 +23,113 @@ class ExportController extends Controller
         return view('all');
     }
 
+    public function exportAll4(Request $request) {
+        set_time_limit(0);
+        $request->year_from = 2014;
+        $request->year_to = 2020;
+        $request->request->add(['year_from' => 2010, 'year_to' => 2020]);
+
+        $years = [];
+        for($i = $request->year_from; $i<=$request->year_to; $i++) {
+            array_push($years, $i);
+        }
+        return $this->exportVerticalAll4($request, $years);
+    }
+
+    public function exportVerticalAll4(Request $request, $years) {
+        // try{
+            $client = new Client();
+            // $code = $request->code;
+            $codes = $this->getCodes();
+
+            foreach($codes as $key => $code){
+                $head = [
+                    "Mã chứng khoán",
+                    "Năm",
+                    "Tăng trưởng nợ dài hạn",
+                    "Tăng trưởng nợ ngắn hạn",
+                    "Tăng trưởng nợ",
+                    "Tăng trưởng doanh thu",
+                    "ROA",
+                    "Dòng tiền",
+                    "Tài sản cố định/Tổng tài sản",
+                    "Tỷ lệ thuế thu nhập doanh nghiệp trên lợi nhuận sau thuế"
+                ];
+    
+                $data = [];
+                $filePath = 'report/all4/vertical/'.$request->year_from.'-'.$request->year_to.'/Report_'.$code.'_Horizontal'.'.xlsx';
+                if(Storage::exists($filePath)) {
+                    continue;
+                }
+                foreach ($years as $key => $year) {
+                    $tab1 = $client->request('GET', 'https://s.cafef.vn/bao-cao-tai-chinh/'.$code.'/BSheet/'.$year.'/0/0/0/ket-qua-hoat-dong-kinh-doanh-cong-ty-co-phan-dau-tu-the-gioi-di-dong.chn');
+                    $tab2 = $client->request('GET', 'https://s.cafef.vn/bao-cao-tai-chinh/'.$code.'/IncSta/'.$year.'/0/0/0/ket-qua-hoat-dong-kinh-doanh-cong-ty-co-phan-dau-tu-the-gioi-di-dong.chn');
+                    $tab3 = $client->request('GET', 'https://s.cafef.vn/bao-cao-tai-chinh/'.$code.'/CashFlow/'.$year.'/0/0/0/ket-qua-hoat-dong-kinh-doanh-cong-ty-co-phan-dau-tu-the-gioi-di-dong.chn');
+                    
+                    //head
+                    $a = "Năm " . $tab1->filter('#tblGridData td:nth-child(5)')->text();
+                    $a0 = $tab1->filter('#\33 30 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\33 30 > td:nth-child(5)')->text()) : '';
+                    $a1 = $tab1->filter('#\33 10 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\33 10 > td:nth-child(5)')->text()) : '';
+                    $a2 = $tab1->filter('#\33 00 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\33 00 > td:nth-child(5)')->text()) : '';
+                    $a3 = $tab2->filter('#\30 1 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\30 1 > td:nth-child(5)')->text()) : '';
+
+                    $x1 = $tab2->filter('#\36 0 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\36 0 > td:nth-child(5)')->text()) : '';
+                    $x2 = $tab1->filter('#\30 01 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\30 01 > td:nth-child(5)')->text()) : '';
+                    $a4 = is_numeric($x1) && is_numeric($x2) && $x2!=0 ? $x1/$x2 : 0;
+
+                    // // 5
+                    $x1 = $tab2->filter('#\36 0 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\36 0 > td:nth-child(5)')->text()) : '';
+                    $x2 = $tab3->filter('#\30 2 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab3->filter('#\30 2 > td:nth-child(5)')->text()) : '';
+                    $a5 = is_numeric($x1) || is_numeric($x2) ? intval($x1)+intval($x2) : 0;
+
+                    // // 6
+                    $x1 = $tab1->filter('#\32 20 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\32 20 > td:nth-child(5)')->text()) : '';
+                    $x2 = $tab1->filter('#\30 01 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab1->filter('#\30 01 > td:nth-child(5)')->text()) : '';
+                    $a6 = is_numeric($x1) && is_numeric($x2) && $x2!=0 ? $x1/$x2 : 0;
+
+                    // 7
+                    $x1 = $tab2->filter('#\35 1 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\35 1 > td:nth-child(5)')->text()) : '';
+                    $x2 = $tab2->filter('#\36 0 > td:nth-child(5)')->count() > 0 ? str_replace(',', '', $tab2->filter('#\36 0 > td:nth-child(5)')->text()) : '';
+                    $a7 = is_numeric($x1) && is_numeric($x2) && $x2!=0 ? $x1/$x2 : 0;
+                    array_push($data, [$code, $a, $a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7]);
+                }
+
+                foreach($data as $index => $val) {
+                    if($index < count($data) - 1) {
+                        $a = $data[$index][2];
+                        $b = $data[$index+1][2];
+                        $data[$index][2] = is_numeric($a) && is_numeric($b) && $a != 0 ? ($b-$a)/$a : 0;
+
+                        $a = $data[$index][3];
+                        $b = $data[$index+1][3];
+                        $data[$index][3] = is_numeric($a) && is_numeric($b) && $a != 0 ? ($b-$a)/$a : 0;
+
+                        $a = $data[$index][4];
+                        $b = $data[$index+1][4];
+                        $data[$index][4] = is_numeric($a) && is_numeric($b) && $a != 0 ? ($b-$a)/$a : 0;
+
+                        $a = $data[$index][5];
+                        $b = $data[$index+1][5];
+                        $data[$index][5] = is_numeric($a) && is_numeric($b) && $a != 0 ? ($b-$a)/$a : 0;
+                    }
+                    if($index == count($data) - 1) {
+                        $data[$index][2] = 0;
+                        $data[$index][3] = 0;
+                        $data[$index][4] = 0;
+                        $data[$index][5] = 0;
+                    }
+                }
+                Excel::store(new ReportExport($code, $head, $data), $filePath);
+            }
+
+            return "OK";
+            // $this->addToZip('report/horizontal/'.$request->year_from.'-'.$request->year_to);
+            // return Storage::disk('public')->download('report/vertical/'.$request->year_from.'-'.$request->year_to.'/Export_All.zip');
+        // }catch(\InvalidArgumentException $e) {
+        //     abort(404);
+        // }
+    }
+
     public function export(Request $request) {
         $years = [];
         for($i = $request->year_from; $i<=$request->year_to; $i++) {

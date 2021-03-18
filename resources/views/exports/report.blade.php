@@ -1,9 +1,6 @@
 <table>
     <thead>
         <tr>
-            <th>Code: {{$code}}</th>
-        </tr>
-        <tr>
             @foreach ($head as $item)
                 <th>{{ $item }}</th>
             @endforeach
